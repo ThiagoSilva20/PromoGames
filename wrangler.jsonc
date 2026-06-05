@@ -2,5 +2,18 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "promogames",
   "compatibility_date": "2025-04-04",
-  "main": "./workers/app.ts"
+  "main": "./workers/app.ts",
+
+  // Workers Logs — coleta, armazena e permite filtrar logs no dashboard
+  // https://developers.cloudflare.com/workers/observability/logs/workers-logs/
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  }
 }

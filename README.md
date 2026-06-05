@@ -73,10 +73,23 @@ npm start           # serve build/server (após build)
 
 ## Deploy
 
-Build padrão React Router 7 com SSR. Opções comuns:
+### Cloudflare Workers
 
-- **Vercel** — instalar `@vercel/react-router` e usar `vercelPreset()` em `react-router.config.ts`
-- **Cloudflare Workers** — preset `@react-router/cloudflare`
+```bash
+npm run deploy
+```
+
+Config em `wrangler.jsonc`. **Workers Logs** habilitado em `observability`:
+
+- `enabled: true` — persiste logs no dashboard
+- `invocation_logs: true` — request/response e metadata por invocação
+- `head_sampling_rate: 1` — 100% das requisições (reduza em produção com muito tráfego)
+
+Ver logs: **Workers & Pages → promogames → Logs** (ou Observability).
+
+### Outras opções
+
+- **Vercel** — `@vercel/react-router` + `vercelPreset()`
 - **Render / Docker** — `npm run build` + `npm start`
 
 Não há variáveis de ambiente obrigatórias; a CheapShark é pública. Evite muitas requisições seguidas para não receber **429** (rate limit por IP).
