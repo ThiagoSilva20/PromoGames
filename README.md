@@ -1,88 +1,90 @@
-# Welcome to React Router!
+# PromoGames
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Agregador de promoções de jogos para PC com dados reais da [CheapShark API](https://www.cheapshark.com/). Monitora ofertas da **Steam**, **Epic Games** e **GOG**, com destaques na home, catálogo filtrável e busca com debounce.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Funcionalidades
 
-## Features
+- **Home** — oferta em destaque, jogos em promoção, maiores quedas recentes e ticker ao vivo
+- **Catálogo** (`/promocoes`) — grade ou lista, filtros por loja, rating Steam e desconto mínimo
+- **Busca** — debounce de 400ms e TanStack Query; a API só é chamada com 2+ caracteres
+- **Links diretos** — Steam via `steamAppID`; demais lojas via redirect da CheapShark
+- **Tratamento de erros** — estados de falha com retry (429, indisponibilidade da API)
+- **Responsivo** — menu mobile, layouts adaptados para celular
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+## Stack
 
-## Getting Started
+| Camada | Tecnologia |
+|--------|------------|
+| Framework | [React Router 7](https://reactrouter.com/) (SSR) |
+| UI | React 19, [Tailwind CSS 4](https://tailwindcss.com/) |
+| Dados (cliente) | [TanStack Query](https://tanstack.com/query) |
+| Build | Vite 8, TypeScript |
+| API externa | CheapShark (`/stores`, `/deals`) |
 
-### Installation
+## Estrutura do projeto
 
-Install the dependencies:
+```
+app/
+├── components/     # UI (Navbar, Hero, GameCard, FetchError…)
+├── hooks/          # useDebounce
+├── lib/
+│   ├── cheapshark.ts   # fetch e mapeamento Deal → Game
+│   ├── filters.ts      # filtros client-side do catálogo
+│   ├── queries/        # catalogQueryOptions (TanStack Query)
+│   └── query-client.ts
+├── routes/
+│   ├── home.tsx        # loader SSR + página inicial
+│   └── promocoes.tsx   # catálogo + busca (client)
+└── root.tsx            # ticker global + QueryClientProvider
+```
+
+## Como os dados fluem
+
+**Servidor (loaders)** — IP do hosting na requisição à CheapShark:
+
+- `root.tsx` → ticker (8 ofertas recentes)
+- `home.tsx` → hero, destaques e top drops
+
+**Cliente (browser)** — IP do visitante:
+
+- `/promocoes` → `useQuery` + `fetchCatalog` com termo debounced
+
+Cache em memória de lojas (`/stores`) por 5 minutos. TanStack Query usa `staleTime` de 2 min no catálogo.
+
+## Pré-requisitos
+
+- Node.js 20+
+- npm ou yarn
+
+## Desenvolvimento
 
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
+App em `http://localhost:5173`.
 
 ```bash
-npm run build
+npm run typecheck   # tipos + react-router typegen
+npm run build       # build de produção
+npm start           # serve build/server (após build)
 ```
 
-## Deployment
+## Deploy
 
-### Docker Deployment
+Build padrão React Router 7 com SSR. Opções comuns:
 
-To build and run using Docker:
+- **Vercel** — instalar `@vercel/react-router` e usar `vercelPreset()` em `react-router.config.ts`
+- **Cloudflare Workers** — preset `@react-router/cloudflare`
+- **Render / Docker** — `npm run build` + `npm start`
 
-```bash
-docker build -t my-app .
+Não há variáveis de ambiente obrigatórias; a CheapShark é pública. Evite muitas requisições seguidas para não receber **429** (rate limit por IP).
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
+## Rotas
 
-The containerized application can be deployed to any platform that supports Docker, including:
+| Rota | Descrição |
+|------|-----------|
+| `/` | Home com destaques e estatísticas |
+| `/promocoes` | Catálogo completo com filtros e busca |
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
-# PromoGames
