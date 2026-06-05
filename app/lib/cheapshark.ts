@@ -4,6 +4,11 @@ const BASE = "https://www.cheapshark.com/api/1.0";
 const CHEAPSHARK_REDIRECT = "https://www.cheapshark.com/redirect.php";
 const MONITORED_STORE_IDS = new Set(["1", "7", "25"]);
 const STORES_CACHE_MS = 5 * 60 * 1000;
+const API_HEADERS = {
+  Accept: "application/json",
+  // CheapShark retorna 400 sem User-Agent (Workers / SSR)
+  "User-Agent": "PromoGames/1.0 (+https://github.com/ThiagoSilva20/PromoGames)",
+};
 
 type DealSort = "Savings" | "Price" | "Title" | "DealRating" | "Recent";
 
@@ -49,12 +54,14 @@ async function apiGet<T>(path: string, params?: Record<string, string | number |
       if (value !== undefined && value !== "") url.searchParams.set(key, String(value));
     }
   }
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: API_HEADERS });
   if (!res.ok) {
     const msg =
       res.status === 429
         ? "CheapShark limitou as requisições (429). Aguarde alguns segundos e recarregue."
-        : `CheapShark indisponível (${res.status})`;
+        : res.status === 400
+          ? "CheapShark rejeitou a requisição (400). Tente novamente em instantes."
+          : `CheapShark indisponível (${res.status})`;
     const err = new Error(msg) as Error & { status?: number };
     err.status = res.status;
     throw err;
